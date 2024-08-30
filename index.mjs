@@ -37,8 +37,6 @@ app.post("/login", async (req, res) => {
   try {
     // 判断当前账号是否存在在集合里面
     if (userObject.username.includes(username)) {
-      console.log(password, 'user')
-      console.log(passwordOb?.password?.[username], 'pass')
       if (passwordOb?.password?.[username] == password) {
         res.json({ code: 0, data: { username: username, token: 'wdasasd' }, msg: "登录成功" });
       } else {
