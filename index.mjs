@@ -12,7 +12,45 @@ app.use(cors());
 app.use(bodyParser.json());
 
 app.use("/static", express.static("locales"));
+app.post("/login", async (req, res) => {
+  const { username, password } = req.body;
+  const cn = (await import(`./locales/user.js`)).default;
+  const temp = {}
+  // 账号集合
+  const userObject = Object.keys(cn).reduce((acc, current) => {
+    const [label, value] = current.split('.');
+    if (!acc[label]) {
+      acc[label] = [];
+    }
+    acc[label].push(value);
+    return acc;
+  }, {});
 
+  // 密码集合
+  const passwordOb = Object.keys(cn).reduce((acc, current) => {
+    const [_, value] = current.split('.');
+    temp[value] = cn[current]
+    return {
+      password: temp
+    }
+  }, {});
+  try {
+    // 判断当前账号是否存在在集合里面
+    if (userObject.username.includes(username)) {
+      console.log(password, 'user')
+      console.log(passwordOb?.password?.[username], 'pass')
+      if (passwordOb?.password?.[username] == password) {
+        res.json({ code: 0, data: { username: username, token: 'wdasasd' }, msg: "登录成功" });
+      } else {
+        res.json({ code: 1, msg: "密码错误" });
+      }
+    } else {
+      res.json({ code: 1, msg: "此账号并未注册" });
+    }
+  } catch (error) {
+    res.status(500).json({ code: 1, msg: error.message || "内部服务器错误" });
+  }
+})
 app.post("/delete", async (req, res) => {
   const { stringID, menuKey } = req.body;
 
@@ -103,7 +141,6 @@ app.get("/getfile", async (req, res) => {
 
     res.status(200).send({ code: 0, data: newObj, msg: "数据获取成功" });
   } catch (error) {
-    console.error("Error loading locales:", error);
     res.status(500).send({ code: -1, msg: "内部服务器错误" });
   }
 });
